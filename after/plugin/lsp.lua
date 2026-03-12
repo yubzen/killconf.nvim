@@ -3,13 +3,26 @@ require('mason').setup({})
 require('mason-lspconfig').setup({
     -- Replace the language servers listed here
     -- with the ones you want to install
-    ensure_installed = { 'jsonls', 'ts_ls', 'eslint', 'lua_ls', 'html', 'tailwindcss',
+    ensure_installed = {
+        "ts_ls",
+        'jsonls',
+        'lua_ls',
+        'html',
+        'tailwindcss',
+        'rust_analyzer',
+        'gopls',
+        'cssls',
+        'oxlint',
         'intelephense' },
     -- automatic_enable=true,
     automatic_enable = {
         "ts_ls",
         "lua_ls",
-        "eslint",
+        "oxlint",
+        "cssls",
+        "html",
+        "rust_analyzer",
+        "gopls",
         "tailwindcss",
         "jsonls",
         "intelephense"
@@ -18,110 +31,10 @@ require('mason-lspconfig').setup({
         function(server_name)
             require('lspconfig')[server_name].setup({})
         end,
-        ts_ls = function()
-            require('lspconfig').ts_ls.setup({
-
-                -- BALANCED MEMORY SETTINGS:
-                init_options = {
-                    maxTsServerMemory = 2048,                         -- Balanced limit for 8GB RAM
-                    preferences = {
-                        disableSuggestions = false,                   -- KEEP enabled for autocomplete
-                        includeCompletionsForModuleExports = true,    -- KEEP for auto-imports
-                        includeCompletionsForImportStatements = true, -- ENABLE auto-imports
-                        includeAutomaticOptionalChainCompletions = true,
-                    },
-                },
-
-                -- BALANCED SETTINGS - Keep essential features:
-                settings = {
-                    typescript = {
-                        -- DISABLE heavy inlay hints but keep some useful ones:
-                        inlayHints = {
-                            includeInlayParameterNameHints = 'none',          -- Disable parameter hints
-                            includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-                            includeInlayFunctionParameterTypeHints = false,   -- Disable to save memory
-                            includeInlayVariableTypeHints = false,            -- Disable to save memory
-                            includeInlayPropertyDeclarationTypeHints = false, -- Disable to save memory
-                            includeInlayFunctionLikeReturnTypeHints = false,  -- Disable to save memory
-                            includeInlayEnumMemberValueHints = true,          -- KEEP this one - it's useful and lightweight
-                        },
-                        preferences = {
-                            disableSuggestions = false,                   -- KEEP enabled for autocomplete
-                            includeCompletionsWithSnippetText = true,     -- KEEP for better completions
-                            includeCompletionsForImportStatements = true, -- ESSENTIAL for auto-imports
-                        },
-                        suggest = {
-                            includeCompletionsForModuleExports = true, -- ESSENTIAL for auto-imports
-                            includeAutomaticOptionalChainCompletions = true,
-                            includeCompletionsWithInsertText = true,
-                            autoImports = true, -- ESSENTIAL for auto-imports
-                        },
-                    },
-                    javascript = {
-                        inlayHints = {
-                            includeInlayParameterNameHints = 'none',
-                            includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-                            includeInlayFunctionParameterTypeHints = false,
-                            includeInlayVariableTypeHints = false,
-                            includeInlayPropertyDeclarationTypeHints = false,
-                            includeInlayFunctionLikeReturnTypeHints = false,
-                            includeInlayEnumMemberValueHints = true, -- Keep this lightweight feature
-                        },
-                        suggest = {
-                            autoImports = true, -- ESSENTIAL for auto-imports
-                        },
-                    },
-                },
-
-                -- MODERATE debounce time:
-                flags = {
-                    debounce_text_changes = 750, -- Balanced - not too slow, not too fast
-                },
-
-                -- BALANCED on_attach:
-                on_attach = function(client, bufnr)
-                    client.server_capabilities.documentFormattingProvider = false
-                    client.server_capabilities.documentRangeFormattingProvider = false
-                    -- Keep semantic tokens for better highlighting (but disable if still too slow)
-                    -- client.server_capabilities.semanticTokensProvider = nil
-                    client.server_capabilities.documentHighlightProvider = false -- Disable this heavy feature
-                end,
-            })
+        rust_analyzer = function()
+            require('rust-tools').setup({})
         end,
-        -- Optimized ESLint configuration
-        eslint = function()
-            require('lspconfig').eslint.setup({
-                -- ... your existing config ...
 
-                settings = {
-                    -- BALANCED settings:
-                    format = false, -- Keep disabled to save memory
-                    quiet = false,  -- KEEP enabled to see warnings (they're useful)
-                    run = "onSave", -- Run on save instead of onType for better performance
-
-                    -- KEEP useful code actions:
-                    codeAction = {
-                        disableRuleComment = {
-                            enable = true,
-                            location = "separateLine"
-                        },
-                        showDocumentation = {
-                            enable = true -- KEEP enabled - it's useful and not memory-heavy
-                        }
-                    },
-                    codeActionOnSave = {
-                        enable = true,    -- ENABLE for auto-fixing on save
-                        mode = "problems" -- Only fix actual problems, not style issues
-                    },
-                    -- ... rest of your settings unchanged ...
-                },
-
-                -- MODERATE debounce time:
-                flags = {
-                    debounce_text_changes = 1500, -- Balanced - not too slow for feedback
-                },
-            })
-        end,
         -- Tailwind CSS configuration
         tailwindcss = function()
             require('lspconfig').tailwindcss.setup({
@@ -176,14 +89,12 @@ require('mason-lspconfig').setup({
                     debounce_text_changes = 500,
                 },
             })
-        end,
-
+        end
     },
 
-    flags = {
-        debounce_text_changes = 500, -- wait 500 ms between change events
-    },
+
 })
+
 
 local cmp = require('cmp')
 local cmp_select = { behavior = cmp.SelectBehavior.Select }
@@ -218,3 +129,15 @@ lsp_zero.on_attach(function(_, bufnr)
     vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
 end)
 lsp_zero.setup()
+
+-- -- Global LSP settings for better performance
+-- local signs = {
+--     { name = "DiagnosticSignError", text = "" },
+--     { name = "DiagnosticSignWarn",  text = "" },
+--     { name = "DiagnosticSignHint",  text = "" },
+--     { name = "DiagnosticSignInfo",  text = "" },
+-- }
+--
+-- for _, sign in ipairs(signs) do
+--     vim.fn.sign_define(sign.name, { texthl = sign.name, text = sign.text, numhl = "" })
+-- end

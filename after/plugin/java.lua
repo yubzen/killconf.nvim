@@ -1,0 +1,26 @@
+-- local jdtls = require('jdtls')
+--
+-- local home = os.getenv("HOME")
+-- local workspace_dir = home .. "/.local/share/eclipse/" .. vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+--
+-- local config = {
+--     cmd = {
+--         "jdtls",
+--         "-data", workspace_dir
+--     },
+--     root_dir = require('lspconfig').util.root_pattern(
+--         ".git",
+--         "mvnw",
+--         "gradlew",
+--         "pom.xml",
+--         "build.gradle"
+--     ),
+--     settings = {
+--         java = {
+--             signatureHelp = { enabled = true },
+--             contentProvider = { preferred = "fernflower" },
+--         }
+--     }
+-- }
+--
+-- jdtls.start_or_attach(config)
